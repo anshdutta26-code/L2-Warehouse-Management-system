@@ -113,19 +113,32 @@ div[data-testid="stForm"] label p {{
     font-family: 'Inter',sans-serif !important;
 }}
 
-/* ── INPUT ── */
-div[data-testid="stForm"] input,
-div[data-testid="stForm"] [data-baseweb="input"],
-div[data-testid="stForm"] [data-baseweb="base-input"] {{
-    background: rgba(255,255,255,0.10) !important;
-    background-color: rgba(255,255,255,0.10) !important;
-}}
-div[data-testid="stForm"] [data-baseweb="input"] {{
+/* ── INPUT ──
+   Streamlit versions me input ka DOM alag hota hai
+   (purana: data-baseweb="input", naya: stTextInputRootElement),
+   isliye style us wrapper pe lagate hain jo har version me hai:
+   [data-testid="stTextInput"] */
+div[data-testid="stForm"] div[data-testid="stTextInput"] {{
+    background: rgba(255,255,255,0.14) !important;
     border: 1px solid rgba(255,255,255,0.25) !important;
     border-radius: 10px !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }}
+div[data-testid="stForm"] div[data-testid="stTextInput"]:focus-within {{
+    border-color: #3d7aed !important;
+    box-shadow: 0 0 0 3px rgba(61,122,237,0.25) !important;
+}}
+/* wrapper ke andar ki saari layers transparent (light theme ka
+   grey background aur red border yahin se hatta hai) */
+div[data-testid="stForm"] div[data-testid="stTextInput"] div {{
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}}
 div[data-testid="stForm"] input {{
+    background: transparent !important;
+    background-color: transparent !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
     caret-color: #ffffff !important;
@@ -137,10 +150,6 @@ div[data-testid="stForm"] input {{
 div[data-testid="stForm"] input::placeholder {{
     color: rgba(255,255,255,0.45) !important;
     -webkit-text-fill-color: rgba(255,255,255,0.45) !important;
-}}
-div[data-testid="stForm"] [data-baseweb="input"]:focus-within {{
-    border-color: #3d7aed !important;
-    box-shadow: 0 0 0 3px rgba(61,122,237,0.25) !important;
 }}
 
 /* ── AUTOFILL FIX (browser ka white/yellow background rokta hai) ── */
@@ -156,8 +165,13 @@ div[data-testid="stForm"] input:-webkit-autofill:active {{
 }}
 
 /* password eye icon ka color */
-div[data-testid="stForm"] [data-baseweb="input"] svg {{
+div[data-testid="stForm"] div[data-testid="stTextInput"] svg {{
     fill: rgba(255,255,255,0.7) !important;
+    color: rgba(255,255,255,0.7) !important;
+}}
+div[data-testid="stForm"] div[data-testid="stTextInput"] button {{
+    background: transparent !important;
+    border: none !important;
     color: rgba(255,255,255,0.7) !important;
 }}
 
