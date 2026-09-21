@@ -26,6 +26,70 @@ TOP_LIST = 20      # ek tab mein max itne PO dikhenge (search se filter karo)
 
 
 # =========================================================
+# PROCESSING OVERLAY
+#
+# Save All Gate In dabane par poori screen ke beech dikhta hai
+# (Gate Out jaisa). Save + list reload complete hone tak rehta hai.
+# =========================================================
+
+_PROCESSING_OVERLAY_HTML = """
+<div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+">
+    <div style="
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2.4rem 3rem;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    ">
+        <div class="gi-spinner"></div>
+        <div style="
+            margin-top: 1.2rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        ">
+            Processing Gate In...
+        </div>
+        <div style="
+            margin-top: 0.3rem;
+            font-size: 0.82rem;
+            color: #6b7280;
+        ">
+            Please wait, do not refresh.
+        </div>
+    </div>
+</div>
+
+<style>
+.gi-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e5e7eb;
+    border-top: 5px solid #0284c7;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: gi-spin 0.8s linear infinite;
+}
+@keyframes gi-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+"""
+
+
+# =========================================================
 # HELPERS
 # =========================================================
 
@@ -880,14 +944,19 @@ def _render_items_added(po_data: list[dict]) -> None:
         st.warning("⚠️ Pehle kam se kam ek item Add Item se add karo.")
         return
 
+    # Save ke dauran poori screen pe "Processing" overlay
+    processing = st.empty()
+    processing.markdown(_PROCESSING_OVERLAY_HTML, unsafe_allow_html=True)
+
     try:
         _save_gate_in(items_to_save, po_data)
     except Exception as e:
+        processing.empty()            # failure me overlay turant hatao
         st.error(f"❌ Gate In Save Nahi Hua: {e}")
         return
 
     # Save ho gaya → items khali, PO list pe wapas.
-    # Balloons + success message top banner dikhayega.
+    # Success message top banner dikhayega.
     st.session_state.gate_in_items     = []
     st.session_state.gate_in_success   = True
     st.session_state.gate_in_active_po = None
@@ -896,6 +965,11 @@ def _render_items_added(po_data: list[dict]) -> None:
         "gate_in_location_",
         "gate_in_sku_",
     ]
+
+    # Overlay yahan nahi hataya: agla run (PO list reload) apna overlay
+    # dikhaye aur page poora render hone ke baad hi hataye — purani
+    # screen ka flash na aaye.
+    st.session_state.gate_in_show_overlay = True
     st.rerun()
 
 
@@ -903,7 +977,7 @@ def _render_items_added(po_data: list[dict]) -> None:
 # MAIN PAGE
 # =========================================================
 
-def render_gate_in(on_back=None) -> None:
+def _render_gate_in_body(on_back=None) -> None:
     _init_state()
     st.markdown(_CSS, unsafe_allow_html=True)
 
@@ -934,7 +1008,6 @@ def render_gate_in(on_back=None) -> None:
 
     # ── Success banner (after save) ──
     if st.session_state.gate_in_success:
-        st.balloons()
         st.success("🎉 Gate In Saved Successfully!")
         st.session_state.gate_in_success = False
 
@@ -965,3 +1038,24 @@ def render_gate_in(on_back=None) -> None:
 
     if st.session_state.gate_in_items:
         _render_items_added(po_data)
+
+
+# =========================================================
+# ENTRY POINT
+#
+# Save ke baad ka agla run yahan overlay dikhata hai aur page
+# poora render hone ke baad hi hatata hai.
+# =========================================================
+
+def render_gate_in(on_back=None) -> None:
+    overlay = None
+
+    if st.session_state.pop("gate_in_show_overlay", False):
+        overlay = st.empty()
+        overlay.markdown(_PROCESSING_OVERLAY_HTML, unsafe_allow_html=True)
+
+    try:
+        _render_gate_in_body(on_back)
+    finally:
+        if overlay is not None:
+            overlay.empty()
