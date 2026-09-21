@@ -1,4 +1,4 @@
-  """
+"""
 auth.py
 --------
 Phase 1 authentication layer.
