@@ -116,6 +116,70 @@ div[data-testid="stDateInput"] input:focus {
 
 
 # =========================================================
+# PROCESSING OVERLAY
+#
+# Create PO dabane par poori screen ke beech dikhta hai
+# (Gate Out jaisa). Balloons ki jagah yahi use hota hai.
+# =========================================================
+
+_PROCESSING_OVERLAY_HTML = """
+<div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+">
+    <div style="
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2.4rem 3rem;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    ">
+        <div class="po-spinner"></div>
+        <div style="
+            margin-top: 1.2rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        ">
+            Processing PO...
+        </div>
+        <div style="
+            margin-top: 0.3rem;
+            font-size: 0.82rem;
+            color: #6b7280;
+        ">
+            Please wait, do not refresh.
+        </div>
+    </div>
+</div>
+
+<style>
+.po-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e5e7eb;
+    border-top: 5px solid #0284c7;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: po-spin 0.8s linear infinite;
+}
+@keyframes po-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+"""
+
+
+# =========================================================
 # STATE
 # =========================================================
 
@@ -408,14 +472,24 @@ def _submit_po(h: dict, sku_list: list[dict]) -> None:
     payload = {k: h[k] for k in _PAYLOAD_KEYS}
     payload["sku_data"] = json.dumps(valid)
 
+    # Save ke dauran poori screen pe "Processing" overlay
+    processing = st.empty()
+    processing.markdown(_PROCESSING_OVERLAY_HTML, unsafe_allow_html=True)
+
     try:
         get_client().table("po_master").insert(payload).execute()
     except Exception as e:
+        processing.empty()            # failure me overlay turant hatao
         st.error(f"❌ PO Save Nahi Hua: {e}")
         return
 
     st.session_state.po_created = True
     st.session_state.sku_rows = _new_rows()
+
+    # Overlay yahan nahi hataya: agla run apna overlay dikhaye aur
+    # page poora render hone ke baad hi hataye (purani screen ka
+    # flash na aaye).
+    st.session_state.po_show_overlay = True
     st.rerun()
 
 
@@ -472,7 +546,7 @@ def _render_step2() -> None:
 # MAIN PAGE
 # =========================================================
 
-def render_create_po(on_back=None) -> None:
+def _render_create_po_body(on_back=None) -> None:
     _init_state()
 
     st.markdown(_CSS, unsafe_allow_html=True)
@@ -491,7 +565,6 @@ def render_create_po(on_back=None) -> None:
 
     if st.session_state.po_created:
         st.success("✅ PO Created Successfully!")
-        st.balloons()
         st.session_state.po_created = False
         _reset_po_flow()
 
@@ -499,3 +572,24 @@ def render_create_po(on_back=None) -> None:
         _render_step1()
     elif st.session_state.po_step == 2:
         _render_step2()
+
+
+# =========================================================
+# ENTRY POINT
+#
+# Create PO ke baad ka agla run yahan overlay dikhata hai aur
+# page render hone ke baad hi hatata hai.
+# =========================================================
+
+def render_create_po(on_back=None) -> None:
+    overlay = None
+
+    if st.session_state.pop("po_show_overlay", False):
+        overlay = st.empty()
+        overlay.markdown(_PROCESSING_OVERLAY_HTML, unsafe_allow_html=True)
+
+    try:
+        _render_create_po_body(on_back)
+    finally:
+        if overlay is not None:
+            overlay.empty()
