@@ -98,6 +98,71 @@ def _html(markup: str) -> None:
 
 
 # =========================================================
+# PROCESSING OVERLAY
+#
+# Save Gate Out dabane par poori screen ke beech dikhta hai.
+# Save + Accounts email + list reload — teeno complete hone
+# tak yeh rehta hai, taaki purani screen na dikhe.
+# =========================================================
+
+_PROCESSING_OVERLAY_HTML = """
+<div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+">
+    <div style="
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2.4rem 3rem;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    ">
+        <div class="go-spinner"></div>
+        <div style="
+            margin-top: 1.2rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        ">
+            Processing Gate Out...
+        </div>
+        <div style="
+            margin-top: 0.3rem;
+            font-size: 0.82rem;
+            color: #6b7280;
+        ">
+            Please wait, do not refresh.
+        </div>
+    </div>
+</div>
+
+<style>
+.go-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e5e7eb;
+    border-top: 5px solid #0284c7;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: go-spin 0.8s linear infinite;
+}
+@keyframes go-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+"""
+
+
+# =========================================================
 # SESSION STATE
 # =========================================================
 
@@ -2167,6 +2232,8 @@ def _render_order_detail(
                             f"abhi bhi pending hain."
                         )
 
+                    # Fully Allocate touches ALL locations of this
+                    # SKU, so it is correct to clear all of them.
                     st.session_state.gate_out_clear_prefixes = [
                         f"go_qty_{selected_order_id}_{sku_code}_"
                     ]
@@ -2395,8 +2462,26 @@ def _render_order_detail(
 
                             if added:
 
-                                st.session_state.gate_out_clear_prefixes = [
-                                    f"go_qty_{selected_order_id}_{sku_code}_"
+                                # BUGFIX:
+                                # Pehle yahan poore SKU ka prefix
+                                # (go_qty_{order}_{sku}_) clear
+                                # ho raha tha, jisse is SKU ki
+                                # DOOSRI locations me jo qty
+                                # already type ki gayi thi woh
+                                # bhi 0 ho jaati thi.
+                                #
+                                # Ab sirf ISI location ke
+                                # number_input ka EXACT key
+                                # clear hoga, baaki locations
+                                # ki entered qty untouched
+                                # rahegi.
+                                st.session_state.gate_out_clear_exact = [
+                                    (
+                                        f"go_qty_"
+                                        f"{selected_order_id}_"
+                                        f"{sku_code}_"
+                                        f"{location_index}"
+                                    )
                                 ]
 
                                 st.rerun()
@@ -2652,15 +2737,34 @@ def _render_order_detail(
             key="save_gate_out",
         ):
 
-            with st.spinner(
-                "Saving Gate Out..."
-            ):
+            # =============================================
+            # CENTERED PROCESSING OVERLAY
+            #
+            # Balloons ki jagah, ab yeh poore screen ke
+            # beech me ek dark overlay + white card +
+            # spinning circle dikhayega "Processing Gate
+            # Out..." ke saath, jab tak save complete
+            # nahi ho jaata.
+            # =============================================
 
-                success, error = (
-                    _save_gate_out(
-                        selected_review_items
-                    )
+            processing_placeholder = st.empty()
+
+            processing_placeholder.markdown(
+                _PROCESSING_OVERLAY_HTML,
+                unsafe_allow_html=True,
+            )
+
+            success, error = (
+                _save_gate_out(
+                    selected_review_items
                 )
+            )
+
+            # NOTE: overlay yahan nahi hataya jaata. Accounts email
+            # bhejne me kuch second lagte hain, us dauran purani
+            # screen dikhni nahi chahiye. Overlay sirf FAILURE me
+            # hatta hai; SUCCESS me agla run (list view) apna
+            # overlay dikhake list poori load hone tak rakhta hai.
 
             # =================================================
             # SUCCESS
@@ -2794,6 +2898,9 @@ def _render_order_detail(
                     "go_qty_",
                 ]
 
+                # Agla run overlay dikhaye (list load hone tak)
+                st.session_state.gate_out_show_overlay = True
+
                 st.rerun()
 
             # =================================================
@@ -2801,6 +2908,8 @@ def _render_order_detail(
             # =================================================
 
             else:
+
+                processing_placeholder.empty()
 
                 st.session_state.gate_out_error = (
                     error
@@ -2816,7 +2925,7 @@ def _render_order_detail(
 # MAIN PAGE
 # =========================================================
 
-def render_gate_out(
+def _render_gate_out_body(
     on_back=None,
 ) -> None:
 
@@ -2825,7 +2934,7 @@ def render_gate_out(
     inject_gate_out_css()
 
     # =====================================================
-    # CLEAR PREVIOUS WIDGET VALUES
+    # CLEAR PREVIOUS WIDGET VALUES (PREFIX-BASED)
     # =====================================================
 
     prefixes = st.session_state.pop(
@@ -2850,6 +2959,34 @@ def render_gate_out(
                     key,
                     None,
                 )
+
+    # =====================================================
+    # CLEAR PREVIOUS WIDGET VALUES (EXACT KEY)
+    #
+    # BUGFIX: Jab ek hi SKU ki multiple locations open hoti
+    # thi aur ek location pe "Add" kiya jaata tha, tab poore
+    # SKU ka prefix clear ho jaata tha — isse doosri
+    # locations me pehle se type ki gayi qty bhi reset ho
+    # jaati thi aur unka Add button use hi nahi ho pata tha.
+    #
+    # Ab sirf us EXACT location ke number_input ka key clear
+    # hota hai jispe abhi Add dabaya gaya tha, baaki
+    # locations ki values untouched rehti hain.
+    # =====================================================
+
+    exact_keys = st.session_state.pop(
+        "gate_out_clear_exact",
+        None,
+    )
+
+    if exact_keys:
+
+        for key in exact_keys:
+
+            st.session_state.pop(
+                key,
+                None,
+            )
 
     # =====================================================
     # TITLE
@@ -2884,11 +3021,15 @@ def render_gate_out(
 
     # =====================================================
     # SUCCESS BANNER
+    #
+    # NOTE: st.balloons() hata diya gaya hai — ab success
+    # ka visual feedback sirf "Save Gate Out" click hote
+    # hi dikhne wale centered "Processing Gate Out..."
+    # overlay se milta hai, uske baad seedha yeh success
+    # banner.
     # =====================================================
 
     if st.session_state.gate_out_success:
-
-        st.balloons()
 
         st.success(
             "🎉 Gate Out Saved Successfully!"
@@ -2987,3 +3128,43 @@ def render_gate_out(
         _render_order_list(
             orders
         )
+
+
+# =========================================================
+# ENTRY POINT
+#
+# Save ke baad ka agla run yahan overlay dikhata hai aur
+# page poora render hone ke baad hi hatata hai — isse
+# "Processing" screen ke baad purani screen ka flash
+# nahi aata.
+# =========================================================
+
+def render_gate_out(
+    on_back=None,
+) -> None:
+
+    overlay = None
+
+    if st.session_state.pop(
+        "gate_out_show_overlay",
+        False,
+    ):
+
+        overlay = st.empty()
+
+        overlay.markdown(
+            _PROCESSING_OVERLAY_HTML,
+            unsafe_allow_html=True,
+        )
+
+    try:
+
+        _render_gate_out_body(
+            on_back
+        )
+
+    finally:
+
+        if overlay is not None:
+
+            overlay.empty()
