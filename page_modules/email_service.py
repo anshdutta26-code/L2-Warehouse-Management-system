@@ -492,10 +492,10 @@ td {{
 <div class="container">
 
     <div class="header">
-        EMIZA WMS - Gate Out Notification
+        L2 WAREHOUSE - Gate Out Notification
     </div>
 
-    <div class="status">
+    <div class="status">    
         GATE OUT COMPLETED SUCCESSFULLY
     </div>
 
