@@ -1,15 +1,6 @@
-"""
-auth.py
---------
-Phase 1 authentication layer.
-
-UI me user "Username" type karta hai, lekin Supabase Auth email+password pe
-kaam karta hai. Is file ka kaam sirf itna hai: username -> email identity map
-karna aur Supabase se login/logout karana.
-
-Username structure baad me change hoga -> tab sirf `username_to_identity()`
-edit karni padegi, baaki app ko haath lagane ki zarurat nahi.
-"""
+# auth.py
+# Phase 1 authentication layer.
+# Maps username to Supabase email identity and handles login/logout.
 
 from __future__ import annotations
 
