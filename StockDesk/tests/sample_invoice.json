@@ -1,0 +1,60 @@
+{
+  "id": "5f8b74df-b8e1-492f-81ea-09461ea81ef0",
+  "number": "INV/2627/000001",
+  "kind": "invoice",
+  "status": "OPEN",
+  "date": "2026-09-21",
+  "created": "2026-09-21T10:00:00+05:30",
+  "client": {
+    "id": "C1",
+    "name": "DEMO Client",
+    "address": "Sample client address",
+    "pin": "110001",
+    "city": "New Delhi",
+    "state": "07",
+    "phone": "9876543210",
+    "gstin": ""
+  },
+  "supplier": {
+    "name": "DEMO Trading Company",
+    "address": "Sample address, Delhi - 110001",
+    "gstin": "07ABCDE1234F1Z5",
+    "state": "07",
+    "phone": "9876543210",
+    "bank": "Demo bank details",
+    "terms": "Sample only. Not a real invoice.",
+    "locations": [
+      "Main",
+      "Factory"
+    ]
+  },
+  "pos": "07",
+  "location": "Main",
+  "lines": [
+    {
+      "article": "FG",
+      "name": "Demo finished article",
+      "hsn": "4202",
+      "unit": "PCS",
+      "quantity": 2,
+      "rate": 10000,
+      "discount": 10,
+      "gst": 18,
+      "taxable": 18000,
+      "cgst": 1620,
+      "sgst": 1620,
+      "igst": 0,
+      "total": 21240
+    }
+  ],
+  "totals": {
+    "taxable": 18000,
+    "cgst": 1620,
+    "sgst": 1620,
+    "igst": 0,
+    "total": 21240
+  },
+  "notes": "Demo only",
+  "source": "",
+  "actor": "test"
+}

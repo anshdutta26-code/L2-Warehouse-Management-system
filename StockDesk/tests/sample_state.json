@@ -1,0 +1,548 @@
+{
+  "revision": 17,
+  "settings": {
+    "name": "DEMO Trading Company",
+    "address": "Sample address, Delhi - 110001",
+    "gstin": "07ABCDE1234F1Z5",
+    "state": "07",
+    "phone": "9876543210",
+    "bank": "Demo bank details",
+    "terms": "Sample only. Not a real invoice.",
+    "locations": [
+      "Main",
+      "Factory"
+    ]
+  },
+  "products": {
+    "RAW": {
+      "id": "RAW",
+      "name": "Demo raw material",
+      "hsn": "3926",
+      "gst": 18,
+      "unit": "KG",
+      "rate": 5000,
+      "reorder": 5
+    },
+    "FG": {
+      "id": "FG",
+      "name": "Demo finished article",
+      "hsn": "4202",
+      "gst": 18,
+      "unit": "PCS",
+      "rate": 10000,
+      "reorder": 5
+    }
+  },
+  "clients": {
+    "C1": {
+      "id": "C1",
+      "name": "Changed name",
+      "address": "Sample client address",
+      "pin": "110001",
+      "city": "New Delhi",
+      "state": "07",
+      "phone": "9876543210",
+      "gstin": ""
+    }
+  },
+  "boms": {
+    "FG": {
+      "article": "FG",
+      "version": 1,
+      "components": [
+        {
+          "article": "RAW",
+          "quantity": 2,
+          "waste": 10
+        }
+      ]
+    }
+  },
+  "stock": {
+    "RAW@Main": 78,
+    "FG@Main": 22,
+    "FG@Factory": 4
+  },
+  "docs": {
+    "5f8b74df-b8e1-492f-81ea-09461ea81ef0": {
+      "id": "5f8b74df-b8e1-492f-81ea-09461ea81ef0",
+      "number": "INV/2627/000001",
+      "kind": "invoice",
+      "status": "OPEN",
+      "date": "2026-09-21",
+      "created": "2026-09-21T10:00:00+05:30",
+      "client": {
+        "id": "C1",
+        "name": "DEMO Client",
+        "address": "Sample client address",
+        "pin": "110001",
+        "city": "New Delhi",
+        "state": "07",
+        "phone": "9876543210",
+        "gstin": ""
+      },
+      "supplier": {
+        "name": "DEMO Trading Company",
+        "address": "Sample address, Delhi - 110001",
+        "gstin": "07ABCDE1234F1Z5",
+        "state": "07",
+        "phone": "9876543210",
+        "bank": "Demo bank details",
+        "terms": "Sample only. Not a real invoice.",
+        "locations": [
+          "Main",
+          "Factory"
+        ]
+      },
+      "pos": "07",
+      "location": "Main",
+      "lines": [
+        {
+          "article": "FG",
+          "name": "Demo finished article",
+          "hsn": "4202",
+          "unit": "PCS",
+          "quantity": 2,
+          "rate": 10000,
+          "discount": 10,
+          "gst": 18,
+          "taxable": 18000,
+          "cgst": 1620,
+          "sgst": 1620,
+          "igst": 0,
+          "total": 21240
+        }
+      ],
+      "totals": {
+        "taxable": 18000,
+        "cgst": 1620,
+        "sgst": 1620,
+        "igst": 0,
+        "total": 21240
+      },
+      "notes": "Demo only",
+      "source": "",
+      "actor": "test"
+    },
+    "3f42b3b8-13e2-4f8f-ba55-25444e17c3a3": {
+      "id": "3f42b3b8-13e2-4f8f-ba55-25444e17c3a3",
+      "number": "UB/2627/000001",
+      "kind": "unbilled",
+      "status": "VOID",
+      "date": "2026-09-21",
+      "created": "2026-09-21T10:00:00+05:30",
+      "client": {
+        "id": "C1",
+        "name": "Changed name",
+        "address": "Sample client address",
+        "pin": "110001",
+        "city": "New Delhi",
+        "state": "07",
+        "phone": "9876543210",
+        "gstin": ""
+      },
+      "supplier": {
+        "name": "DEMO Trading Company",
+        "address": "Sample address, Delhi - 110001",
+        "gstin": "07ABCDE1234F1Z5",
+        "state": "07",
+        "phone": "9876543210",
+        "bank": "Demo bank details",
+        "terms": "Sample only. Not a real invoice.",
+        "locations": [
+          "Main",
+          "Factory"
+        ]
+      },
+      "pos": "06",
+      "location": "Main",
+      "lines": [
+        {
+          "article": "FG",
+          "name": "Demo finished article",
+          "hsn": "4202",
+          "unit": "PCS",
+          "quantity": 2,
+          "rate": 10000,
+          "discount": 10,
+          "gst": 18,
+          "taxable": 18000,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 3240,
+          "total": 21240
+        }
+      ],
+      "totals": {
+        "taxable": 18000,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 3240,
+        "total": 21240
+      },
+      "notes": "Demo only",
+      "source": "",
+      "actor": "test",
+      "invoice": "",
+      "voidReason": "Cancelled test",
+      "voided": "2026-09-21T10:00:00+05:30"
+    },
+    "30ea6407-5ccd-48c2-899a-f6631be57a1e": {
+      "id": "30ea6407-5ccd-48c2-899a-f6631be57a1e",
+      "number": "INV/2627/000002",
+      "kind": "invoice",
+      "status": "VOID",
+      "date": "2026-09-21",
+      "created": "2026-09-21T10:00:00+05:30",
+      "client": {
+        "id": "C1",
+        "name": "Changed name",
+        "address": "Sample client address",
+        "pin": "110001",
+        "city": "New Delhi",
+        "state": "07",
+        "phone": "9876543210",
+        "gstin": ""
+      },
+      "supplier": {
+        "name": "DEMO Trading Company",
+        "address": "Sample address, Delhi - 110001",
+        "gstin": "07ABCDE1234F1Z5",
+        "state": "07",
+        "phone": "9876543210",
+        "bank": "Demo bank details",
+        "terms": "Sample only. Not a real invoice.",
+        "locations": [
+          "Main",
+          "Factory"
+        ]
+      },
+      "pos": "06",
+      "location": "Main",
+      "lines": [
+        {
+          "article": "FG",
+          "name": "Demo finished article",
+          "hsn": "4202",
+          "unit": "PCS",
+          "quantity": 2,
+          "rate": 10000,
+          "discount": 10,
+          "gst": 18,
+          "taxable": 18000,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 3240,
+          "total": 21240
+        }
+      ],
+      "totals": {
+        "taxable": 18000,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 3240,
+        "total": 21240
+      },
+      "notes": "Demo only",
+      "source": "3f42b3b8-13e2-4f8f-ba55-25444e17c3a3",
+      "actor": "test",
+      "voidReason": "Test correction",
+      "voided": "2026-09-21T10:00:00+05:30"
+    },
+    "7483c074-1741-453e-b604-fbcc15ad774b": {
+      "id": "7483c074-1741-453e-b604-fbcc15ad774b",
+      "number": "INV/2728/000001",
+      "kind": "invoice",
+      "status": "OPEN",
+      "date": "2027-04-01",
+      "created": "2027-04-01T10:00:00+05:30",
+      "client": {
+        "id": "C1",
+        "name": "Changed name",
+        "address": "Sample client address",
+        "pin": "110001",
+        "city": "New Delhi",
+        "state": "07",
+        "phone": "9876543210",
+        "gstin": ""
+      },
+      "supplier": {
+        "name": "DEMO Trading Company",
+        "address": "Sample address, Delhi - 110001",
+        "gstin": "07ABCDE1234F1Z5",
+        "state": "07",
+        "phone": "9876543210",
+        "bank": "Demo bank details",
+        "terms": "Sample only. Not a real invoice.",
+        "locations": [
+          "Main",
+          "Factory"
+        ]
+      },
+      "pos": "07",
+      "location": "Main",
+      "lines": [
+        {
+          "article": "FG",
+          "name": "Demo finished article",
+          "hsn": "4202",
+          "unit": "PCS",
+          "quantity": 2,
+          "rate": 10000,
+          "discount": 10,
+          "gst": 18,
+          "taxable": 18000,
+          "cgst": 1620,
+          "sgst": 1620,
+          "igst": 0,
+          "total": 21240
+        }
+      ],
+      "totals": {
+        "taxable": 18000,
+        "cgst": 1620,
+        "sgst": 1620,
+        "igst": 0,
+        "total": 21240
+      },
+      "notes": "Demo only",
+      "source": "",
+      "actor": "test"
+    }
+  },
+  "payments": {
+    "b5254fbe-d73c-40e7-aaf6-dfc5b9162c1c": {
+      "id": "b5254fbe-d73c-40e7-aaf6-dfc5b9162c1c",
+      "document": "5f8b74df-b8e1-492f-81ea-09461ea81ef0",
+      "number": "INV/2627/000001",
+      "date": "2026-09-21",
+      "amount": 10000,
+      "method": "UPI",
+      "reference": "P1",
+      "actor": "test"
+    }
+  },
+  "moves": [
+    {
+      "id": "f207ac90-477a-45cb-b23b-63562d33cd01",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "RAW",
+      "location": "Main",
+      "quantity": 100,
+      "balance": 100,
+      "reason": "Opening: Test opening",
+      "actor": "test"
+    },
+    {
+      "id": "3a73ebdc-bb9e-4d67-bfce-c9a8548187ce",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": 20,
+      "balance": 20,
+      "reason": "Opening: Test opening",
+      "actor": "test"
+    },
+    {
+      "id": "34ba4f45-6420-44ee-a04f-d9d593b240dd",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": -4,
+      "balance": 16,
+      "reason": "Transfer out: T1",
+      "actor": "test"
+    },
+    {
+      "id": "34ba4f45-6420-44ee-a04f-d9d593b240dd",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Factory",
+      "quantity": 4,
+      "balance": 4,
+      "reason": "Transfer in: T1",
+      "actor": "test"
+    },
+    {
+      "id": "0d6bb284-ca79-49e4-9fa4-10f0b9fff0f2",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "RAW",
+      "location": "Main",
+      "quantity": -22,
+      "balance": 78,
+      "reason": "BOM v1 batch B1",
+      "actor": "test"
+    },
+    {
+      "id": "0d6bb284-ca79-49e4-9fa4-10f0b9fff0f2",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": 10,
+      "balance": 26,
+      "reason": "Finished production: B1",
+      "actor": "test"
+    },
+    {
+      "id": "5f8b74df-b8e1-492f-81ea-09461ea81ef0",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": -2,
+      "balance": 24,
+      "reason": "INV/2627/000001",
+      "actor": "test"
+    },
+    {
+      "id": "3f42b3b8-13e2-4f8f-ba55-25444e17c3a3",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": -2,
+      "balance": 22,
+      "reason": "UB/2627/000001",
+      "actor": "test"
+    },
+    {
+      "id": "6aa6c3d6-13b1-46bb-bed5-a5db8d4f3fe6",
+      "at": "2026-09-21T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": 2,
+      "balance": 24,
+      "reason": "Void UB/2627/000001: Cancelled test",
+      "actor": "test"
+    },
+    {
+      "id": "7483c074-1741-453e-b604-fbcc15ad774b",
+      "at": "2027-04-01T10:00:00+05:30",
+      "article": "FG",
+      "location": "Main",
+      "quantity": -2,
+      "balance": 22,
+      "reason": "INV/2728/000001",
+      "actor": "test"
+    }
+  ],
+  "audit": [
+    {
+      "id": "dd0d7304-3157-4f74-ae83-f4bd48b0142f",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "settings",
+      "reference": ""
+    },
+    {
+      "id": "1e3d15d4-22d8-4131-94b5-1c0b74d4879b",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "product",
+      "reference": "RAW"
+    },
+    {
+      "id": "4634fcc7-6eee-4ba2-a855-a8702a1e6e23",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "product",
+      "reference": "FG"
+    },
+    {
+      "id": "d4bdba26-e21a-4e01-a5f6-be10de41b4d5",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "client",
+      "reference": "C1"
+    },
+    {
+      "id": "f207ac90-477a-45cb-b23b-63562d33cd01",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "stock",
+      "reference": "Test opening"
+    },
+    {
+      "id": "3a73ebdc-bb9e-4d67-bfce-c9a8548187ce",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "stock",
+      "reference": "Test opening"
+    },
+    {
+      "id": "34ba4f45-6420-44ee-a04f-d9d593b240dd",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "transfer",
+      "reference": "T1"
+    },
+    {
+      "id": "4c8b2fd6-0ac0-41fa-a2c8-be8950315112",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "bom",
+      "reference": "FG"
+    },
+    {
+      "id": "0d6bb284-ca79-49e4-9fa4-10f0b9fff0f2",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "produce",
+      "reference": "B1"
+    },
+    {
+      "id": "5f8b74df-b8e1-492f-81ea-09461ea81ef0",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "invoice",
+      "reference": "INV/2627/000001"
+    },
+    {
+      "id": "ff035dfc-3867-424c-8004-4d059dbf5ea9",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "client",
+      "reference": "C1"
+    },
+    {
+      "id": "3f42b3b8-13e2-4f8f-ba55-25444e17c3a3",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "unbilled",
+      "reference": "UB/2627/000001"
+    },
+    {
+      "id": "30ea6407-5ccd-48c2-899a-f6631be57a1e",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "convert",
+      "reference": "INV/2627/000002"
+    },
+    {
+      "id": "ce457915-defe-4711-ac6c-c57792ffa90e",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "void",
+      "reference": "INV/2627/000002"
+    },
+    {
+      "id": "6aa6c3d6-13b1-46bb-bed5-a5db8d4f3fe6",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "void",
+      "reference": "UB/2627/000001"
+    },
+    {
+      "id": "b5254fbe-d73c-40e7-aaf6-dfc5b9162c1c",
+      "at": "2026-09-21T10:00:00+05:30",
+      "actor": "test",
+      "action": "payment",
+      "reference": "INV/2627/000001"
+    },
+    {
+      "id": "7483c074-1741-453e-b604-fbcc15ad774b",
+      "at": "2027-04-01T10:00:00+05:30",
+      "actor": "test",
+      "action": "invoice",
+      "reference": "INV/2728/000001"
+    }
+  ]
+}

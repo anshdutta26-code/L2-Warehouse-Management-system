@@ -1,0 +1,60 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),crypto=require('crypto');
+const ctx={console};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/../backend/Code.gs','utf8'),ctx);
+let s=ctx.blankState(),events=[],checks=0;
+const at='2026-09-21T10:00:00+05:30';
+function run(action,data,date=at){const c={id:crypto.randomUUID(),revision:s.revision,actor:'test',action,data};const e=ctx.prepareEvent(s,c,date);ctx.applyEvent(s,e);events.push(e);return e;}
+function test(name,fn){fn();checks++;console.log('PASS '+name);}
+function rejects(action,data,re){const before=JSON.stringify(s);assert.throws(()=>run(action,data),re);assert.equal(JSON.stringify(s),before);}
+const settings={name:'DEMO Trading Company',address:'Sample address, Delhi - 110001',gstin:'07ABCDE1234F1Z5',state:'07',phone:'9876543210',locations:['Main','Factory'],bank:'Demo bank details',terms:'Sample only. Not a real invoice.'};
+const client={id:'C1',name:'DEMO Client',address:'Sample client address',pin:'110001',city:'New Delhi',state:'07',phone:'9876543210',gstin:''};
+run('settings',settings);
+run('product',{id:'RAW',name:'Demo raw material',hsn:'3926',gst:18,unit:'KG',rate:50,reorder:5});
+run('product',{id:'FG',name:'Demo finished article',hsn:'4202',gst:18,unit:'PCS',rate:100,reorder:5});
+run('client',client);
+run('stock',{article:'RAW',location:'Main',quantity:100,kind:'Opening',reference:'Test opening'});
+run('stock',{article:'FG',location:'Main',quantity:20,kind:'Opening',reference:'Test opening'});
+test('Opening stock recorded',()=>assert.equal(s.stock['FG@Main'],20));
+test('Negative stock rejected without partial changes',()=>rejects('stock',{article:'FG',location:'Main',quantity:-21,kind:'Adjustment',reference:'test'},/Insufficient/));
+test('Transfers conserve stock',()=>{run('transfer',{article:'FG',from:'Main',to:'Factory',quantity:4,reference:'T1'});assert.equal(s.stock['FG@Main'],16);assert.equal(s.stock['FG@Factory'],4);});
+test('Insufficient transfer changes neither location',()=>rejects('transfer',{article:'FG',from:'Main',to:'Factory',quantity:100,reference:'T2'},/Insufficient/));
+run('bom',{article:'FG',components:[{article:'RAW',quantity:2,waste:10}]});
+test('BOM production consumes materials plus wastage',()=>{run('produce',{article:'FG',location:'Main',quantity:10,reference:'B1'});assert.equal(s.stock['RAW@Main'],78);assert.equal(s.stock['FG@Main'],26);});
+test('BOM shortage is atomic',()=>rejects('produce',{article:'FG',location:'Main',quantity:100,reference:'B2'},/Insufficient/));
+test('BOM cycles rejected',()=>rejects('bom',{article:'RAW',components:[{article:'FG',quantity:1,waste:0}]},/cycle/));
+const sale={client:'C1',location:'Main',pos:'07',lines:[{article:'FG',quantity:2,rate:100,discount:10}],notes:'Demo only'};
+let inv;
+test('Intra-state invoice taxes and discount',()=>{const e=run('invoice',sale);inv=s.docs[e.id];assert.equal(inv.totals.taxable,18000);assert.equal(inv.totals.cgst,1620);assert.equal(inv.totals.sgst,1620);assert.equal(inv.totals.igst,0);assert.equal(inv.totals.total,21240);assert.equal(s.stock['FG@Main'],24);});
+test('Duplicate article lines cannot oversell',()=>rejects('invoice',{...sale,lines:[{article:'FG',quantity:20,rate:100},{article:'FG',quantity:20,rate:100}]},/Insufficient/));
+test('GSTIN state mismatch rejected',()=>rejects('client',{...client,gstin:'06ABCDE1234F1Z5'},/mismatch/));
+test('Historical invoice retains client and prices',()=>{run('client',{...client,name:'Changed name'});assert.equal(inv.client.name,'DEMO Client');});
+let ub,converted;
+test('Unbilled stock issue is visible',()=>{const e=run('unbilled',{...sale,pos:'06'});ub=s.docs[e.id];assert.equal(ub.totals.igst,3240);assert.equal(ub.totals.cgst,0);assert.equal(s.stock['FG@Main'],22);});
+test('Conversion never deducts stock again',()=>{const stock=JSON.stringify(s.stock),e=run('convert',{source:ub.id});converted=s.docs[e.id];assert.equal(JSON.stringify(s.stock),stock);assert.equal(s.docs[ub.id].status,'CONVERTED');assert.equal(converted.totals.total,ub.totals.total);});
+test('Cannot convert the same entry twice',()=>rejects('convert',{source:ub.id},/open unbilled/));
+test('Void converted invoice reopens unbilled without stock change',()=>{const stock=JSON.stringify(s.stock);run('void',{id:converted.id,reason:'Test correction'});assert.equal(JSON.stringify(s.stock),stock);assert.equal(s.docs[ub.id].status,'OPEN');});
+test('Void original unbilled returns stock once',()=>{run('void',{id:ub.id,reason:'Cancelled test'});assert.equal(s.stock['FG@Main'],24);rejects('void',{id:ub.id,reason:'again'},/open records/);});
+test('Payment balance enforced',()=>{run('payment',{document:inv.id,amount:100,method:'UPI',reference:'P1'});rejects('payment',{document:inv.id,amount:200,method:'UPI',reference:'P2'},/exceeds/);rejects('void',{id:inv.id,reason:'test'},/payments exist/);});
+test('Stale revision rejected',()=>assert.throws(()=>ctx.prepareEvent(s,{id:crypto.randomUUID(),revision:0,action:'stock',actor:'test',data:{}},at),/Data changed/));
+test('New financial year starts a new unique series',()=>{const e=run('invoice',sale,'2027-04-01T10:00:00+05:30');assert.equal(s.docs[e.id].number,'INV/2728/000001');});
+test('Event replay reproduces state exactly',()=>{let replay=ctx.blankState();events.forEach(e=>ctx.applyEvent(replay,e));assert.equal(JSON.stringify(replay),JSON.stringify(s));});
+test('Units cannot change after stock entries',()=>rejects('product',{...s.products.FG,rate:100,unit:'KG'},/Cannot change unit/));
+test('Warehouse history cannot be orphaned',()=>rejects('settings',{...settings,locations:['Main']},/history/));
+test('Supplier state cannot change after billing',()=>rejects('settings',{...settings,state:'06',gstin:'06ABCDE1234F1Z5'},/supplier state/));
+test('Spreadsheet formula injection escaped',()=>{assert.equal(ctx.safeCell('=IMPORTXML("x")'),"'=IMPORTXML(\"x\")");assert.equal(ctx.safeCell(-3),-3);});
+// Exercise actual doPost logic using mocked Google services, including post-commit failures.
+let rows=[['Committed event JSON']],locked=false,failProjection=false;
+let sh={getLastRow:()=>rows.length,getRange:()=>({getValues:()=>rows.slice(1)}),appendRow:r=>rows.push(r)};
+ctx.PropertiesService={getScriptProperties:()=>({getProperty:k=>k==='API_SECRET'?'x'.repeat(64):'spreadsheet'})};
+ctx.LockService={getScriptLock:()=>({waitLock:()=>{locked=true},hasLock:()=>locked,releaseLock:()=>{locked=false}})};
+ctx.SpreadsheetApp={openById:()=>({getSheetByName:()=>sh,getUrl:()=> 'https://docs.google.com/spreadsheets/d/test'}),flush:()=>{}};
+ctx.Utilities={computeHmacSha256Signature:(p,key)=>Array.from(crypto.createHmac('sha256',key).update(p).digest()),formatDate:()=>at};
+ctx.ContentService={MimeType:{JSON:'json'},createTextOutput:t=>({setMimeType:()=>JSON.parse(t)})};
+ctx.project=()=>{if(failProjection)throw Error('quota test')};
+function post(command,signature){const payload=JSON.stringify({...command,timestamp:Date.now()/1000});return ctx.doPost({postData:{contents:JSON.stringify({payload,signature:signature||crypto.createHmac('sha256','x'.repeat(64)).update(payload).digest('hex')})}});}
+let command={id:crypto.randomUUID(),revision:0,actor:'admin',action:'settings',data:settings};
+test('Gateway commits once and idempotently answers retries',()=>{assert.equal(post(command).ok,true);assert.equal(post(command).duplicate,true);assert.equal(rows.length,2);assert.equal(locked,false);});
+test('Gateway refuses invalid signatures',()=>{assert.equal(post({...command,id:crypto.randomUUID()},'bad').ok,false);assert.equal(rows.length,2);});
+test('Projection failure preserves committed ledger',()=>{failProjection=true;const res=post({...command,id:crypto.randomUUID(),revision:1});assert.equal(res.ok,true);assert.match(res.warning,/Saved to ledger/);assert.equal(rows.length,3);});
+fs.writeFileSync(__dirname+'/sample_invoice.json',JSON.stringify(inv,null,2));
+fs.writeFileSync(__dirname+'/sample_state.json',JSON.stringify(s,null,2));
+console.log(checks+' checks passed');
